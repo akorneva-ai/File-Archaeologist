@@ -9,12 +9,59 @@ PathString = Union[str, Path]
 
 def is_windows_os() -> bool:
     """Проверка что программа запущена на Windows"""
-    pass
+
+    os_name = platform.system()
+    if os_name == 'Windows':
+        return True
+    else:
+        return False
 
 
 def validate_windows_path(path: PathString) -> Tuple[bool, str]:
     """Проверка корректности Windows пути"""
-    pass
+
+    list_error = []
+    error = ""
+    not_prohibited_characters = True
+    exists = True
+    length_path = True
+    prohibited_characters = ["/", ":", "*", "?", '"', "<", ">", "|"]
+
+    if not isinstance(path, (Path, str)):
+        return False, "некорректный тип пути"
+
+    path_string = str(path)
+
+    drive, tail = os.path.splitdrive(path_string)
+
+    if len(path_string) > 260:
+        length_path = False
+        error = "слишком длинный путь"
+        list_error.append(error)
+
+    for ch in prohibited_characters:
+        if ch in tail:
+            not_prohibited_characters = False
+
+    if not not_prohibited_characters:
+        error = "путь с файлом содержит недопустимые символы"
+        list_error.append(error)
+
+    if drive:
+        if len(drive) != 2 or not drive[0].isalpha() or drive[1] != ":":
+                error = "путь с файлом содержит недопустимые символы"
+                not_prohibited_characters = False
+                list_error.append(error)
+
+    if not os.path.exists(path):
+        exists = False
+        error = "путь не найден"
+        list_error.append(error)
+
+    valid = not_prohibited_characters and length_path and exists
+
+    return valid, "; ".join(list_error)
+
 
 def format_size(size_bytes: int) -> str:
     """Форматирование размера файла в читаемом виде для Windows"""
