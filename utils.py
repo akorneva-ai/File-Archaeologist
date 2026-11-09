@@ -65,18 +65,60 @@ def validate_windows_path(path: PathString) -> Tuple[bool, str]:
 
 def format_size(size_bytes: int) -> str:
     """Форматирование размера файла в читаемом виде для Windows"""
-    pass
+
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes >= 1024:
+        size = round((size_bytes / 1024), 1)
+
+        if size < 1024:
+            return f"{size} KB"
+        else:
+            size = round((size / 1024), 1)
+
+            if size < 1024:
+                return f"{size} MB"
+            else:
+                return f"{round((size / 1024), 1)} GB"
 
 
 def get_parent_path(path: PathString) -> str:
     """Получение родительского каталога с учетом Windows путей"""
-    pass
+
+    drive, tail = os.path.splitdrive(path)
+
+    if path == drive:
+        return path
+    else:
+        return os.path.dirname(path)
 
 def safe_windows_listdir(path: PathString) -> List[str]:
     """Безопасное получение содержимого каталога в Windows"""
-    pass
+
+    try:
+        return os.listdir(path)
+    except FileNotFoundError:
+        return []
+    except PermissionError:
+        return []
+    except OSError:
+        return []
 
 
 def is_hidden_windows_file(path: PathString) -> bool:
     """Проверка является ли файл скрытым в Windows"""
-    pass
+
+    kernel32 = ctypes.windll.kernel32
+    get_file_attributes = kernel32.GetFileAttributesW
+
+    path = str(path)
+
+    attributes = get_file_attributes(path)
+
+    if attributes == 0xFFFFFFFF or attributes == -1:
+        return False
+
+    if attributes & 2 == 0:
+        return False
+    else:
+        return True
